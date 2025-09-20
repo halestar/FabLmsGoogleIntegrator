@@ -2,7 +2,7 @@
     "name": "halestar/fablms-google-integrator",
     "description": "An integration module for FabLMS (dev.kalinec.net) to integrate with Google Services.",
     "type": "add-on",
-    "license": "GPL-3",
+    "license": "GPL-3.0-or-later",
     "autoload": {
         "psr-4": {
             "halestar\\FablmsGoogleIntegrator\\": "src/"
