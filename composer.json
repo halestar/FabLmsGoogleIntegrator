@@ -1,0 +1,31 @@
+{
+    "name": "halestar/fablms-google-integrator",
+    "description": "An integration module for FabLMS (dev.kalinec.net) to integrate with Google Services.",
+    "type": "add-on",
+    "license": "GPL-3",
+    "autoload": {
+        "psr-4": {
+            "halestar\\FablmsGoogleIntegrator\\": "src/"
+        }
+    },
+    "extra": {
+      "laravel": {
+        "providers": [
+          "halestar\\FablmsGoogleIntegrator\\GoogleIntegratorServiceProvider"
+        ]
+      }
+    },
+    "authors": [
+        {
+            "name": "German Kalinec",
+            "email": "german@kalinec.net"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require":
+    {
+      "php": "^8.2",
+      "laravel/framework": ">=12.0",
+      "livewire/livewire": "^v3.5.4"
+    }
+}
