@@ -4,53 +4,12 @@ namespace halestar\FabLmsGoogleIntegrator\Services;
 
 use App\Enums\IntegratorServiceTypes;
 use App\Interfaces\Integrators\IntegrationServiceInterface;
-use App\Models\Integrations\IntegrationService;
 use App\Models\Integrations\LmsIntegrationService;
 use App\Models\People\Person;
 use halestar\FabLmsGoogleIntegrator\Connections\GoogleAuthConnection;
 
 class GoogleAuthService extends LmsIntegrationService
 {
-	
-	/**
-	 * @inheritDoc
-	 */
-	public function canConnect(Person $person): bool
-	{
-		return $this->integrator->verifySettings();
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public function getConnectionClass(): string
-	{
-		return GoogleAuthConnection::class;
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public function getSystemConnectionClass(): string
-	{
-		return '';
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public function systemAutoconnect(): bool
-	{
-		return false;
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public function configurationUrl(): string
-	{
-		return route('integrators.google.services.auth');
-	}
 	
 	/**
 	 * @inheritDoc
@@ -118,6 +77,46 @@ class GoogleAuthService extends LmsIntegrationService
 	public static function canBeConfigured(): bool
 	{
 		return true;
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public function canConnect(Person $person): bool
+	{
+		return $this->integrator->verifySettings();
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public function getConnectionClass(): string
+	{
+		return GoogleAuthConnection::class;
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public function getSystemConnectionClass(): string
+	{
+		return '';
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public function systemAutoconnect(): bool
+	{
+		return false;
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public function configurationUrl(): string
+	{
+		return route('integrators.google.services.auth');
 	}
 	
 	public function canSystemConnect(): bool

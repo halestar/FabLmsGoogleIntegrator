@@ -6,7 +6,8 @@
         @method('PATCH')
         <h4 class="mb-3">{{ __('google-integrator::google.services.work.settings') }}</h4>
         <div class="mb-3">
-            <label for="service_account" class="form-label">{{ __('google-integrator::google.services.work.service_account') }}</label>
+            <label for="service_account"
+                   class="form-label">{{ __('google-integrator::google.services.work.service_account') }}</label>
             <input
                     type="email"
                     class="form-control @error('service_account') is-invalid @enderror"
@@ -16,7 +17,8 @@
                     aria-describedby="service_account_help"
             />
             <x-error-display key="service_account">{{ $errors->first('service_account') }}</x-error-display>
-            <div id="service_account_help" class="form-text">{!! __('google-integrator::google.services.work.service_account.description') !!}</div>
+            <div id="service_account_help"
+                 class="form-text">{!! __('google-integrator::google.services.work.service_account.description') !!}</div>
         </div>
 
         @if($connection)

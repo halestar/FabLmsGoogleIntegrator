@@ -84,13 +84,14 @@
                 @endif
             </label>
             <input
-                class="form-control"
-                type="file"
-                id="service_account"
-                name="service_account"
-                aria-describedby="service_account_help"
+                    class="form-control"
+                    type="file"
+                    id="service_account"
+                    name="service_account"
+                    aria-describedby="service_account_help"
             />
-            <div id="service_account_help" class="form-text">{!! __('google-integrator::google.service.file.description')!!}</div>
+            <div id="service_account_help"
+                 class="form-text">{!! __('google-integrator::google.service.file.description')!!}</div>
         </div>
         <div class="row mt-3">
             <button type="submit" class="btn btn-primary">{{ __('integrators.update') }}</button>

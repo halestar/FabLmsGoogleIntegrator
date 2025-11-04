@@ -4,45 +4,13 @@ namespace halestar\FabLmsGoogleIntegrator\Services;
 
 use App\Classes\Integrators\SecureVault;
 use App\Enums\IntegratorServiceTypes;
-use App\Models\Integrations\IntegrationService;
 use App\Models\Integrations\LmsIntegrationService;
 use App\Models\People\Person;
 use halestar\FabLmsGoogleIntegrator\Connections\GoogleAiConnection;
 use halestar\FabLmsGoogleIntegrator\Connections\GoogleSystemAiConnection;
-use halestar\FabLmsGoogleIntegrator\Connections\GoogleWorkConnection;
 
 class GoogleAiService extends LmsIntegrationService
 {
-	
-	public function canConnect(Person $person): bool
-	{
-		if(!$this->data->allow_user_ai)
-			return false;
-		$vault = app()->make(SecureVault::class);
-		if($this->data->allow_user_system_ai && $vault->hasKey('google', 'gemini_api'))
-			return true;
-		return ($this->data->allow_user_own_ai && $this->getServiceConnection($person)?->data->key);
-	}
-	
-	public function getConnectionClass(): string
-	{
-		return GoogleAiConnection::class;
-	}
-	
-	public function getSystemConnectionClass(): string
-	{
-		return GoogleSystemAiConnection::class;
-	}
-	
-	public function systemAutoconnect(): bool
-	{
-		return false;
-	}
-	
-	public function configurationUrl(): string
-	{
-		return route('integrators.google.services.system.ai');
-	}
 	
 	public static function getServiceType(): IntegratorServiceTypes
 	{
@@ -87,6 +55,36 @@ class GoogleAiService extends LmsIntegrationService
 	public static function canBeConfigured(): bool
 	{
 		return true;
+	}
+	
+	public function canConnect(Person $person): bool
+	{
+		if(!$this->data->allow_user_ai)
+			return false;
+		$vault = app()->make(SecureVault::class);
+		if($this->data->allow_user_system_ai && $vault->hasKey('google', 'gemini_api'))
+			return true;
+		return ($this->data->allow_user_own_ai && $this->getServiceConnection($person)?->data->key);
+	}
+	
+	public function getConnectionClass(): string
+	{
+		return GoogleAiConnection::class;
+	}
+	
+	public function getSystemConnectionClass(): string
+	{
+		return GoogleSystemAiConnection::class;
+	}
+	
+	public function systemAutoconnect(): bool
+	{
+		return false;
+	}
+	
+	public function configurationUrl(): string
+	{
+		return route('integrators.google.services.system.ai');
 	}
 	
 	public function canSystemConnect(): bool

@@ -3,7 +3,8 @@
 @section('integrator-content')
     @inject('vault', 'App\Classes\Integrators\SecureVault')
     <div class="alert alert-warning mb-3">{!! __('integrators.vault.warning') !!}</div>
-    <form action="{{ route('integrators.google.services.system.ai.update') }}" method="post" x-data="{ users_ai: {{ $service->data->allow_user_ai? 'true': 'false' }} }">
+    <form action="{{ route('integrators.google.services.system.ai.update') }}" method="post"
+          x-data="{ users_ai: {{ $service->data->allow_user_ai? 'true': 'false' }} }">
         @csrf
         @method('PATCH')
         <h4>{{ __('google-integrator::google.services.ai.system.settings') }}</h4>

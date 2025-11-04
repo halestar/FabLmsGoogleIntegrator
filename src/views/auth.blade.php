@@ -7,14 +7,14 @@
         <h4 class="mb-3">{{ __('google-integrator::google.services.auth.settings') }}</h4>
         <div class="form-check form-switch mb-3">
             <input
-                class="form-check-input"
-                @checked($service->data->use_avatar)
-                type="checkbox"
-                role="switch"
-                id="use_avatar"
-                name="use_avatar"
-                value="1"
-                switch
+                    class="form-check-input"
+                    @checked($service->data->use_avatar)
+                    type="checkbox"
+                    role="switch"
+                    id="use_avatar"
+                    name="use_avatar"
+                    value="1"
+                    switch
             />
             <label for="use_avatar" class="form-check-label">
                 {{ __('google-integrator::google.services.auth.use_avatar') }}

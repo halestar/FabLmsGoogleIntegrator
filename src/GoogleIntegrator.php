@@ -6,7 +6,6 @@ use App\Classes\Integrators\IntegrationsManager;
 use App\Classes\Integrators\SecureVault;
 use App\Enums\IntegratorServiceTypes;
 use App\Interfaces\Integrators\IntegratorInterface;
-use App\Models\Integrations\Integrator;
 use App\Models\Integrations\LmsIntegrator;
 use App\Models\People\Person;
 use halestar\FabLmsGoogleIntegrator\Controllers\GoogleIntegratorController;
@@ -14,17 +13,77 @@ use halestar\FabLmsGoogleIntegrator\Services\GoogleAiService;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleAuthService;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleDocumentsService;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleWorkStorageService;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 class GoogleIntegrator extends LmsIntegrator
 {
-	public function verifySettings()
+	/**
+	 * @inheritDoc
+	 */
+	public static function integratorName(): string
 	{
-		$vault = app()->make(SecureVault::class);
-		return $vault->hasKey('google', 'client_id') && $vault->hasKey('google', 'client_secret')
-			&& $vault->hasKey('google', 'redirect');
+		return __('google-integrator::google.name');
 	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public static function integratorDescription(): string
+	{
+		return __('google-integrator::google.description');
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public static function defaultData(): array
+	{
+		return
+			[
+			
+			];
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public static function getVersion(): string
+	{
+		return "0.1";
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public static function canConnectToPeople(): bool
+	{
+		return true;
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public static function canConnectToSystem(): bool
+	{
+		return true;
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public static function getPath(): string
+	{
+		return "google";
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public static function canBeConfigured(): bool
+	{
+		return true;
+	}
+	
 	/**
 	 * @inheritDoc
 	 */
@@ -74,32 +133,16 @@ class GoogleIntegrator extends LmsIntegrator
 	/**
 	 * @inheritDoc
 	 */
-	public static function integratorName(): string
-	{
-		return __('google-integrator::google.name');
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public static function integratorDescription(): string
-	{
-		return __('google-integrator::google.description');
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
 	public function publishRoutes(): void
 	{
 		Route::get('google', [GoogleIntegratorController::class, 'integrator'])
-			->name('integrator');
+		     ->name('integrator');
 		Route::patch('google', [GoogleIntegratorController::class, 'update'])
-			->name('integrator.update');
+		     ->name('integrator.update');
 		Route::get('google/auth', [GoogleIntegratorController::class, 'auth'])
-			->name('services.auth');
+		     ->name('services.auth');
 		Route::patch('google/auth', [GoogleIntegratorController::class, 'authUpdate'])
-			->name('services.auth.update');
+		     ->name('services.auth.update');
 		Route::get('google/work', [GoogleIntegratorController::class, 'work'])
 		     ->name('services.work');
 		Route::patch('google/work', [GoogleIntegratorController::class, 'workUpdate'])
@@ -114,55 +157,33 @@ class GoogleIntegrator extends LmsIntegrator
 		     ->name('services.ai.register.update');
 	}
 	
-	/**
-	 * @inheritDoc
-	 */
-	public static function defaultData(): array
+	public function isIntegrated(Person $person): bool
 	{
-		return
-		[
-		
-		];
+		$connection = $this->services()
+		                   ->ofType(IntegratorServiceTypes::AUTHENTICATION)
+		                   ->first()
+		                   ?->connect($person);
+		return ($connection && $connection->hasActiveToken());
 	}
 	
-	/**
-	 * @inheritDoc
-	 */
-	public static function getVersion(): string
+	public function integrationUrl(Person $person): string
 	{
-		return "0.1";
+		//get the auth service
+		$authService = $this->services()
+		                    ->ofType(IntegratorServiceTypes::AUTHENTICATION)
+		                    ->first();
+		$connection = $authService->connect($person);
+		return $connection->redirect()
+		                  ->getTargetUrl();
 	}
 	
-	/**
-	 * @inheritDoc
-	 */
-	public static function canConnectToPeople(): bool
+	public function removeIntegration(Person $person): void
 	{
-		return true;
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public static function canConnectToSystem(): bool
-	{
-		return true;
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public static function getPath(): string
-	{
-		return "google";
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public static function canBeConfigured(): bool
-	{
-		return true;
+		//we will forget the connection for each service we have a connection for.
+		foreach($this->services()
+		             ->personal()
+		             ->get() as $service)
+			$person->removeIntegrationService($service);
 	}
 	
 	protected function canIntegrate(Person $person): bool
@@ -170,24 +191,10 @@ class GoogleIntegrator extends LmsIntegrator
 		return $this->verifySettings();
 	}
 	
-	public function isIntegrated(Person $person): bool
+	public function verifySettings()
 	{
-		$connection = $this->services()->ofType(IntegratorServiceTypes::AUTHENTICATION)->first()?->connect($person);
-		return ($connection && $connection->hasActiveToken());
-	}
-	
-	public function integrationUrl(Person $person): string
-	{
-		//get the auth service
-		$authService = $this->services()->ofType(IntegratorServiceTypes::AUTHENTICATION)->first();
-		$connection = $authService->connect($person);
-		return $connection->redirect()->getTargetUrl();
-	}
-	
-	public function removeIntegration(Person $person): void
-	{
-		//we will forget the connection for each service we have a connection for.
-		foreach($this->services()->personal()->get() as $service)
-			$person->removeIntegrationService($service);
+		$vault = app()->make(SecureVault::class);
+		return $vault->hasKey('google', 'client_id') && $vault->hasKey('google', 'client_secret')
+			&& $vault->hasKey('google', 'redirect');
 	}
 }

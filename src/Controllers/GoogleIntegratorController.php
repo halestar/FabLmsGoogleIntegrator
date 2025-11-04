@@ -4,7 +4,6 @@ namespace halestar\FabLmsGoogleIntegrator\Controllers;
 
 use App\Classes\Integrators\SecureVault;
 use App\Enums\IntegratorServiceTypes;
-use halestar\FabLmsGoogleIntegrator\Connections\GoogleAiConnection;
 use halestar\FabLmsGoogleIntegrator\GoogleIntegrator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -38,13 +37,18 @@ class GoogleIntegratorController
 		//is there a file to upload
 		if($request->hasFile('service_account'))
 			$vault->storeFile($request->file('service_account'), 'google', 'service_account');
-		return redirect()->back()->with('success-status', __('google-integrator::google.update.success'));
+		return redirect()
+			->back()
+			->with('success-status', __('google-integrator::google.update.success'));
 	}
 	
 	public function auth()
 	{
 		//load the service
-		$service = GoogleIntegrator::autoload()->services()->ofType(IntegratorServiceTypes::AUTHENTICATION)->first();
+		$service = GoogleIntegrator::autoload()
+		                           ->services()
+		                           ->ofType(IntegratorServiceTypes::AUTHENTICATION)
+		                           ->first();
 		$breadcrumb =
 			[
 				__('system.menu.integrators') => route('integrators.index'),
@@ -57,19 +61,27 @@ class GoogleIntegratorController
 	public function authUpdate(Request $request)
 	{
 		//use avatar
-		$service = GoogleIntegrator::autoload()->services()->ofType(IntegratorServiceTypes::AUTHENTICATION)->first();
+		$service = GoogleIntegrator::autoload()
+		                           ->services()
+		                           ->ofType(IntegratorServiceTypes::AUTHENTICATION)
+		                           ->first();
 		$service->data->use_avatar = $request->has('use_avatar');
 		//services
 		$service->data->autoconnect = $request->input('autoconnect', []);
 		$service->save();
-		return redirect()->back()->with('success-status', __('google-integrator::google.auth.update.success'));
+		return redirect()
+			->back()
+			->with('success-status', __('google-integrator::google.auth.update.success'));
 		
 	}
 	
 	public function work()
 	{
 		//load the service
-		$service = GoogleIntegrator::autoload()->services()->ofType(IntegratorServiceTypes::WORK)->first();
+		$service = GoogleIntegrator::autoload()
+		                           ->services()
+		                           ->ofType(IntegratorServiceTypes::WORK)
+		                           ->first();
 		$breadcrumb =
 			[
 				__('system.menu.integrators') => route('integrators.index'),
@@ -78,7 +90,8 @@ class GoogleIntegratorController
 			];
 		//attempt a system connection
 		$connection = $service->connectToSystem();
-		return view('google-integrator::work', ['breadcrumb' => $breadcrumb, 'service' => $service, 'connection' => $connection]);
+		return view('google-integrator::work',
+			['breadcrumb' => $breadcrumb, 'service' => $service, 'connection' => $connection]);
 	}
 	
 	public function workUpdate(Request $request)
@@ -86,7 +99,10 @@ class GoogleIntegratorController
 		$data = $request->validate([
 			'service_account' => 'required|email',
 		]);
-		$service = GoogleIntegrator::autoload()->services()->ofType(IntegratorServiceTypes::WORK)->first();
+		$service = GoogleIntegrator::autoload()
+		                           ->services()
+		                           ->ofType(IntegratorServiceTypes::WORK)
+		                           ->first();
 		if($data['service_account'] != $service->data->service_account)
 		{
 			$service->data->service_account = $data['service_account'];
@@ -94,14 +110,19 @@ class GoogleIntegratorController
 			//since we're updating the service account, we need to disconnect.
 			$service->forgetSystemConnection();
 		}
-		return redirect()->back()->with('success-status', __('google-integrator::google.work.update.success'));
+		return redirect()
+			->back()
+			->with('success-status', __('google-integrator::google.work.update.success'));
 		
 	}
 	
 	public function systemAi()
 	{
 		//load the service
-		$service = GoogleIntegrator::autoload()->services()->ofType(IntegratorServiceTypes::AI)->first();
+		$service = GoogleIntegrator::autoload()
+		                           ->services()
+		                           ->ofType(IntegratorServiceTypes::AI)
+		                           ->first();
 		$breadcrumb =
 			[
 				__('system.menu.integrators') => route('integrators.index'),
@@ -110,7 +131,8 @@ class GoogleIntegratorController
 			];
 		//attempt a system connection
 		$connection = $service->connectToSystem();
-		return view('google-integrator::ai', ['breadcrumb' => $breadcrumb, 'service' => $service, 'connection' => $connection]);
+		return view('google-integrator::ai',
+			['breadcrumb' => $breadcrumb, 'service' => $service, 'connection' => $connection]);
 	}
 	
 	public function systemAiUpdate(Request $request, SecureVault $vault)
@@ -118,7 +140,10 @@ class GoogleIntegratorController
 		$gemini_api = $request->input('gemini_api', null);
 		if($gemini_api && $gemini_api != '')
 			$vault->store('google', 'gemini_api', $gemini_api);
-		$service = GoogleIntegrator::autoload()->services()->ofType(IntegratorServiceTypes::AI)->first();
+		$service = GoogleIntegrator::autoload()
+		                           ->services()
+		                           ->ofType(IntegratorServiceTypes::AI)
+		                           ->first();
 		if(!$request->has('allow_user_ai'))
 		{
 			$service->data->allow_user_ai = false;
@@ -130,10 +155,12 @@ class GoogleIntegratorController
 			$service->data->allow_user_ai = true;
 			$allow = $request->input('user_allow_ai', 'allow_user_own_ai');
 			$service->data->allow_user_system_ai = ($allow == 'allow_user_system_ai');
-			$service->data->allow_user_own_ai =($allow == 'allow_user_own_ai');
+			$service->data->allow_user_own_ai = ($allow == 'allow_user_own_ai');
 		}
 		$service->save();
-		return redirect()->back()->with('success-status', __('google-integrator::google.ai.update.success'));
+		return redirect()
+			->back()
+			->with('success-status', __('google-integrator::google.ai.update.success'));
 		
 	}
 	
@@ -153,18 +180,24 @@ class GoogleIntegratorController
 		$data = $request->validate([
 			'client_secret' => 'required',
 		]);
-		$service = GoogleIntegrator::autoload()->services()->ofType(IntegratorServiceTypes::AI)->first();
+		$service = GoogleIntegrator::autoload()
+		                           ->services()
+		                           ->ofType(IntegratorServiceTypes::AI)
+		                           ->first();
 		$person = auth()->user();
 		$registrationData =
 			[
 				'className' => $service->getConnectionClass(),
-				'data' => [ 'key' => Crypt::encryptString($data['client_secret']) ],
+				'data' => ['key' => Crypt::encryptString($data['client_secret'])],
 				'enabled' => true,
 			];
 		$service->registerServiceConnection($person, $registrationData);
 		if($service->connect($person))
-			return redirect()->route('people.show', $person->school_id)
-			                 ->with('success-status', __('google-integrator::google.services.ai.registration.success'));
-		return redirect()->back()->with('success-status', __('google-integrator::google.services.ai.registration.error'));
+			return redirect()
+				->route('people.show', $person->school_id)
+				->with('success-status', __('google-integrator::google.services.ai.registration.success'));
+		return redirect()
+			->back()
+			->with('success-status', __('google-integrator::google.services.ai.registration.error'));
 	}
 }
