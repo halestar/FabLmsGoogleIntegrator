@@ -2,18 +2,27 @@
 
 namespace halestar\FabLmsGoogleIntegrator;
 
+use App\Classes\AI\AiSchema;
 use App\Classes\Integrators\IntegrationsManager;
 use App\Classes\Integrators\SecureVault;
+use App\Enums\AiSchemaType;
 use App\Enums\IntegratorServiceTypes;
 use App\Interfaces\Integrators\IntegratorInterface;
 use App\Models\Integrations\LmsIntegrator;
 use App\Models\People\Person;
+use Gemini\Data\Schema;
+use Gemini\Enums\DataType;
 use halestar\FabLmsGoogleIntegrator\Controllers\GoogleIntegratorController;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleAiService;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleAuthService;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleDocumentsService;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleWorkStorageService;
 use Illuminate\Support\Facades\Route;
+use Prism\Prism\Schema\ArraySchema;
+use Prism\Prism\Schema\BooleanSchema;
+use Prism\Prism\Schema\NumberSchema;
+use Prism\Prism\Schema\ObjectSchema;
+use Prism\Prism\Schema\StringSchema;
 
 class GoogleIntegrator extends LmsIntegrator
 {
