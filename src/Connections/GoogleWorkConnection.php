@@ -142,4 +142,34 @@ class GoogleWorkConnection extends WorkFilesConnection
 		                          ->getBody()
 		                          ->getContents();
 	}
+
+	public function copyWorkFile(WorkFile $file, Fileable $destination): WorkFile
+	{
+		$gFile = new DriveFile();
+		$parentFolder = $this->getInstance($destination->getWorkStorageKey()->value);
+		$gFile->setName($file->name);
+		$gFile->setParents([$parentFolder]);
+
+		$gFile = $this->drive->files->create(
+			$gFile,
+			[
+				'data' => $file->contents(),
+				'mimeType' => 'application/octet-stream',
+				'uploadType' => 'multipart',
+			]);
+		$workFile = new WorkFile();
+		$workFile->name = $gFile->getName();
+		$workFile->connection_id = $this->id;
+		$workFile->path = $gFile->getId();
+		$workFile->mime = $gFile->getMimeType();
+		$workFile->size = $file->size;
+		$workFile->extension = $file->extension;
+		$workFile->hidden = $file->hidden;
+		$workFile->public = $destination->shouldBePublic();
+		$workFile->save();
+		//finally, we link the file
+		$destination->workFiles()
+		         ->attach($workFile);
+		return $workFile;
+	}
 }
