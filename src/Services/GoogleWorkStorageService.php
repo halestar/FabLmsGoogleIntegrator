@@ -100,4 +100,10 @@ class GoogleWorkStorageService extends LmsIntegrationService
 	{
 		return '';
 	}
+
+    public function canEnable(): bool
+    {
+        $vault = app(SecureVault::class);
+        return $vault->hasFile('google', 'service_account');
+    }
 }

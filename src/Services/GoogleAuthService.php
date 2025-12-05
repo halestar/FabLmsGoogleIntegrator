@@ -2,6 +2,7 @@
 
 namespace halestar\FabLmsGoogleIntegrator\Services;
 
+use App\Classes\Integrators\SecureVault;
 use App\Enums\IntegratorServiceTypes;
 use App\Interfaces\Integrators\IntegrationServiceInterface;
 use App\Models\Integrations\LmsIntegrationService;
@@ -133,4 +134,12 @@ class GoogleAuthService extends LmsIntegrationService
 	{
 		return '';
 	}
+
+    public function canEnable(): bool
+    {
+        $vault = app(SecureVault::class);
+        return $vault->hasKey('google', 'client_id') &&
+            $vault->hasKey('google', 'client_secret') &&
+            $vault->hasKey('google', 'redirect');
+    }
 }

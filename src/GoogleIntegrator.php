@@ -144,25 +144,21 @@ class GoogleIntegrator extends LmsIntegrator
 	 */
 	public function publishRoutes(): void
 	{
-		Route::get('google', [GoogleIntegratorController::class, 'integrator'])
+		Route::get('/', [GoogleIntegratorController::class, 'integrator'])
 		     ->name('integrator');
-		Route::patch('google', [GoogleIntegratorController::class, 'update'])
+		Route::patch('/', [GoogleIntegratorController::class, 'update'])
 		     ->name('integrator.update');
-		Route::get('google/auth', [GoogleIntegratorController::class, 'auth'])
+		Route::get('services/auth', [GoogleIntegratorController::class, 'auth'])
 		     ->name('services.auth');
-		Route::patch('google/auth', [GoogleIntegratorController::class, 'authUpdate'])
+		Route::patch('services/auth', [GoogleIntegratorController::class, 'authUpdate'])
 		     ->name('services.auth.update');
-		Route::get('google/work', [GoogleIntegratorController::class, 'work'])
+		Route::get('services/work', [GoogleIntegratorController::class, 'work'])
 		     ->name('services.work');
-		Route::patch('google/work', [GoogleIntegratorController::class, 'workUpdate'])
+		Route::patch('services/work', [GoogleIntegratorController::class, 'workUpdate'])
 		     ->name('services.work.update');
-		Route::get('google/system/ai', [GoogleIntegratorController::class, 'systemAi'])
-		     ->name('services.system.ai');
-		Route::patch('google/system/ai', [GoogleIntegratorController::class, 'systemAiUpdate'])
-		     ->name('services.system.ai.update');
-		Route::get('google/register/ai', [GoogleIntegratorController::class, 'registerAi'])
+		Route::get('services/register/ai', [GoogleIntegratorController::class, 'registerAi'])
 		     ->name('services.ai.register');
-		Route::patch('google/register/ai', [GoogleIntegratorController::class, 'updateAiRegistration'])
+		Route::patch('services/register/ai', [GoogleIntegratorController::class, 'updateAiRegistration'])
 		     ->name('services.ai.register.update');
 	}
 	

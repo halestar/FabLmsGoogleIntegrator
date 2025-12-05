@@ -37,6 +37,10 @@ class GoogleIntegratorController
 		//is there a file to upload
 		if($request->hasFile('service_account'))
 			$vault->storeFile($request->file('service_account'), 'google', 'service_account');
+        //in there gemini app info?
+        $gemini_api = $request->input('gemini_api', null);
+        if($gemini_api && $gemini_api != '')
+            $vault->store('google', 'gemini_api', $gemini_api);
 		return redirect()
 			->back()
 			->with('success-status', __('google-integrator::google.update.success'));
@@ -45,10 +49,7 @@ class GoogleIntegratorController
 	public function auth()
 	{
 		//load the service
-		$service = GoogleIntegrator::autoload()
-		                           ->services()
-		                           ->ofType(IntegratorServiceTypes::AUTHENTICATION)
-		                           ->first();
+		$service = GoogleIntegrator::getService(IntegratorServiceTypes::AUTHENTICATION);
 		$breadcrumb =
 			[
 				__('system.menu.integrators') => route('integrators.index'),
@@ -113,54 +114,6 @@ class GoogleIntegratorController
 		return redirect()
 			->back()
 			->with('success-status', __('google-integrator::google.work.update.success'));
-		
-	}
-	
-	public function systemAi()
-	{
-		//load the service
-		$service = GoogleIntegrator::autoload()
-		                           ->services()
-		                           ->ofType(IntegratorServiceTypes::AI)
-		                           ->first();
-		$breadcrumb =
-			[
-				__('system.menu.integrators') => route('integrators.index'),
-				$service->integrator->name => route('integrators.google.integrator'),
-				$service->name => '#'
-			];
-		//attempt a system connection
-		$connection = $service->connectToSystem();
-		return view('google-integrator::ai',
-			['breadcrumb' => $breadcrumb, 'service' => $service, 'connection' => $connection]);
-	}
-	
-	public function systemAiUpdate(Request $request, SecureVault $vault)
-	{
-		$gemini_api = $request->input('gemini_api', null);
-		if($gemini_api && $gemini_api != '')
-			$vault->store('google', 'gemini_api', $gemini_api);
-		$service = GoogleIntegrator::autoload()
-		                           ->services()
-		                           ->ofType(IntegratorServiceTypes::AI)
-		                           ->first();
-		if(!$request->has('allow_user_ai'))
-		{
-			$service->data->allow_user_ai = false;
-			$service->data->allow_user_system_ai = false;
-			$service->data->allow_user_own_ai = false;
-		}
-		else
-		{
-			$service->data->allow_user_ai = true;
-			$allow = $request->input('user_allow_ai', 'allow_user_own_ai');
-			$service->data->allow_user_system_ai = ($allow == 'allow_user_system_ai');
-			$service->data->allow_user_own_ai = ($allow == 'allow_user_own_ai');
-		}
-		$service->save();
-		return redirect()
-			->back()
-			->with('success-status', __('google-integrator::google.ai.update.success'));
 		
 	}
 	

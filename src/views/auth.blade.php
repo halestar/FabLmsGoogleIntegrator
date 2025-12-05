@@ -1,10 +1,18 @@
 @extends('layouts.integrations', ['breadcrumb' => $breadcrumb, 'selectedService' => $service])
 
 @section('integrator-content')
+    @if($service->canEnable())
     <form action="{{ route('integrators.google.services.auth.update') }}" method="POST">
         @csrf
         @method('PATCH')
-        <h4 class="mb-3">{{ __('google-integrator::google.services.auth.settings') }}</h4>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-3">{{ __('google-integrator::google.services.auth.settings') }}</h4>
+            <livewire:utilities.model-switch
+                    :model="$service"
+                    property="enabled"
+                    classes="col-2 ms-auto"
+            />
+        </div>
         <div class="form-check form-switch mb-3">
             <input
                     class="form-check-input"
@@ -44,7 +52,12 @@
         </div>
 
         <div class="row">
-            <button type="submit" class="btn btn-primary">{{ __('dicms-blog::blogger.settings.update') }}</button>
+            <button type="submit" class="btn btn-primary">{{ __('system.settings.update') }}</button>
         </div>
     </form>
+    @else
+        <div class="alert alert-danger">
+            {{ __('google-integrator::google.services.disables.oauth') }}
+        </div>
+    @endif
 @endsection

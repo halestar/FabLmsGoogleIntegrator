@@ -5,13 +5,13 @@
     "license": "GPL-3.0-or-later",
     "autoload": {
         "psr-4": {
-            "halestar\\FablmsGoogleIntegrator\\": "src/"
+            "halestar\\FabLmsGoogleIntegrator\\": "src/"
         }
     },
     "extra": {
       "laravel": {
         "providers": [
-          "halestar\\FablmsGoogleIntegrator\\GoogleIntegratorServiceProvider"
+          "halestar\\FabLmsGoogleIntegrator\\GoogleIntegratorServiceProvider"
         ]
       }
     },
@@ -25,8 +25,6 @@
     "require":
     {
       "php": "^8.3",
-      "laravel/framework": ">=12.0",
-      "livewire/livewire": "^v3.5.4",
       "prism-php/prism": "^0.98.0",
       "prism-php/relay": "^1.3"
     }

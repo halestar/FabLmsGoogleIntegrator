@@ -31,9 +31,6 @@ class GoogleAiService extends LmsIntegrationService
 	{
 		return
 			[
-				'allow_user_system_ai' => false,
-				'allow_user_ai' => false,
-				'allow_user_own_ai' => false,
 			];
 	}
 	
@@ -44,7 +41,7 @@ class GoogleAiService extends LmsIntegrationService
 	
 	public static function canConnectToSystem(): bool
 	{
-		return true;
+		return false;
 	}
 	
 	public static function getPath(): string
@@ -54,17 +51,15 @@ class GoogleAiService extends LmsIntegrationService
 	
 	public static function canBeConfigured(): bool
 	{
-		return true;
+		return false;
 	}
 	
 	public function canConnect(Person $person): bool
 	{
-		if(!$this->data->allow_user_ai)
-			return false;
 		$vault = app()->make(SecureVault::class);
-		if($this->data->allow_user_system_ai && $vault->hasKey('google', 'gemini_api'))
+		if($vault->hasKey('google', 'gemini_api'))
 			return true;
-		return ($this->data->allow_user_own_ai && $this->getServiceConnection($person)?->data->key);
+		return ($this->getServiceConnection($person)?->data->key);
 	}
 	
 	public function getConnectionClass(): string
@@ -74,7 +69,7 @@ class GoogleAiService extends LmsIntegrationService
 	
 	public function getSystemConnectionClass(): string
 	{
-		return GoogleSystemAiConnection::class;
+		return '';
 	}
 	
 	public function systemAutoconnect(): bool
@@ -84,23 +79,27 @@ class GoogleAiService extends LmsIntegrationService
 	
 	public function configurationUrl(): string
 	{
-		return route('integrators.google.services.system.ai');
+		return '';
 	}
 	
 	public function canSystemConnect(): bool
 	{
-		$vault = app()->make(SecureVault::class);
-		//We can only connect if we have a valid API key
-		return $vault->hasKey('google', 'gemini_api');
+		return false;
 	}
 	
 	public function canRegister(): bool
 	{
-		return $this->data->allow_user_ai && $this->data->allow_user_own_ai;
+		return true;
 	}
 	
 	public function registrationUrl(): string
 	{
 		return route('integrators.google.services.ai.register');
 	}
+
+    public function canEnable(): bool
+    {
+        $vault = app(SecureVault::class);
+        return $vault->hasKey('google', 'gemini_api');
+    }
 }

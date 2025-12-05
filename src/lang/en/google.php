@@ -15,6 +15,8 @@ return
 		'services.work' => 'Google Storage',
 		'services.work.description' => 'This service will allow the system to store all its files in a Google Drive Account.',
 		'services.work.settings' => 'Google Work Storage Settings',
+        'services.disables.oauth' => 'This service cannot be enabled unless a Google OAuth2.0 client ID and secret are configured.',
+        'services.disables.service' => 'This service cannot be enabled unless a Google Service Account is configured.',
 		
 		'services.work.service_account' => 'Service Email',
 		'services.work.service_account.description' => 'This is the email address of the account where the system files will be stored.',
