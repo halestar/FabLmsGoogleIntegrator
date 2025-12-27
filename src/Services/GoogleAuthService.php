@@ -4,7 +4,6 @@ namespace halestar\FabLmsGoogleIntegrator\Services;
 
 use App\Classes\Integrators\SecureVault;
 use App\Enums\IntegratorServiceTypes;
-use App\Interfaces\Integrators\IntegrationServiceInterface;
 use App\Models\Integrations\LmsIntegrationService;
 use App\Models\People\Person;
 use halestar\FabLmsGoogleIntegrator\Connections\GoogleAuthConnection;

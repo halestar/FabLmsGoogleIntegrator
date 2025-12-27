@@ -9,7 +9,6 @@ use App\Interfaces\AiPromptable;
 use App\Interfaces\Fileable;
 use App\Models\Ai\AiPrompt;
 use App\Models\Integrations\Connections\AiConnection;
-use halestar\FabLmsGoogleIntegrator\Traits\GoogleAi;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Prism\Prism\Enums\Provider;

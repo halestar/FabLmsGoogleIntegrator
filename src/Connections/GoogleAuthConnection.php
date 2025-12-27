@@ -52,53 +52,48 @@ class GoogleAuthConnection extends AuthConnection
 	
 	public static function callback(): \Illuminate\Http\RedirectResponse|\Symfony\Component\HttpFoundation\RedirectResponse|null
 	{
+		//load the user that just logged in from socialite
 		$gUser = Socialite::driver('google')
 		                  ->user();
-		//is there a user with this email?
-		$user = Person::where('email', $gUser->email)
-		              ->first();
+		//find the user in the database based on the email.
+		$user = Person::where('email', $gUser->email)->first();
+		//if there's no user, we go back to the login place
 		if(!$user)
-		{
-			//if there's no user, we go back to the login place
 			return redirect()->route('login');
-		}
-		//are we authenticating to log in? or to establish an integration to this integrator?
+
+		//are we authenticating to log in? or to establish an integration to this integrator (registering)?
 		if($user->authConnection instanceof GoogleAuthConnection)
 			$connection = $user->authConnection; //logging in
 		else
-			$connection = GoogleIntegrator::autoload()
-			                              ->services()
-			                              ->ofType(IntegratorServiceTypes::AUTHENTICATION)
-			                              ->first()
-			                              ->connect($user); //integrating
-		//if we have a refresh token, we did a re-auth
-		if($gUser->refreshToken)
+			$connection = GoogleIntegrator::getService(IntegratorServiceTypes::AUTHENTICATION)->connect($user); //registering
+
+		//no matter what we're doing, if we have a connection, we need to update the data.
+		if($connection)
 		{
-			$connection->data->google_id = $gUser->getId();
-			$connection->data->avatar = $gUser->getAvatar();
-			$connection->data->oauth_refresh_token = $gUser->refreshToken;
-			$connection->data->oauth_expires_in = now()->addSeconds($gUser->expiresIn)->timestamp;
-			$connection->data->scopes = $gUser->approvedScopes;
+			//if we have a refresh token, we did a re-auth
+			if ($gUser->refreshToken)
+			{
+				$connection->data->google_id = $gUser->getId();
+				$connection->data->avatar = $gUser->getAvatar();
+				$connection->data->oauth_refresh_token = $gUser->refreshToken;
+				$connection->data->oauth_expires_in = now()->addSeconds($gUser->expiresIn)->timestamp;
+				$connection->data->scopes = $gUser->approvedScopes;
+			}
+			$connection->data->oauth_token = $gUser->token;
+			$connection->save();
+			//check the avatar
+			if ($connection->service->data->use_avatar && $user->portrait_url != $connection->data->avatar)
+			{
+				$user->portrait_url = $connection->data->avatar;
+				$user->save();
+			}
 		}
-		$connection->data->oauth_token = $gUser->token;
-		$connection->save();
-		//check the avatar
-		if($connection->service->data->use_avatar && $user->portrait_url != $connection->data->avatar)
-		{
-			$user->portrait_url = $connection->data->avatar;
-			$user->save();
-		}
-		
+
+		//if we have the auth connection established, then we're logging in.
 		if($user->authConnection instanceof GoogleAuthConnection)
-		{
-			//since we're logging in, check if we need to remember the user.
-			$rememberMe = Cookie::has('remember-me');
-			//login the user.
-			auth()->login($user, $rememberMe);
-			//and go home
-			return redirect()->route('home');
-		}
-		//in this case, we're simply integrating so connect the user to all the services that they should be connected to
+			return redirect($user->authConnection->completeLogin($user));
+
+		//if not, we're integrating, so connect the user to all the services that they should be connected to
 		$integrator = GoogleIntegrator::autoload();
 		foreach($connection->service->data->autoconnect as $service_type)
 			$integrator->services()
@@ -115,6 +110,7 @@ class GoogleAuthConnection extends AuthConnection
 				return false;
 		return true;
 	}
+
 	
 	/**
 	 * @inheritDoc

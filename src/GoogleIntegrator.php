@@ -2,27 +2,18 @@
 
 namespace halestar\FabLmsGoogleIntegrator;
 
-use App\Classes\AI\AiSchema;
 use App\Classes\Integrators\IntegrationsManager;
 use App\Classes\Integrators\SecureVault;
-use App\Enums\AiSchemaType;
 use App\Enums\IntegratorServiceTypes;
-use App\Interfaces\Integrators\IntegratorInterface;
 use App\Models\Integrations\LmsIntegrator;
 use App\Models\People\Person;
-use Gemini\Data\Schema;
-use Gemini\Enums\DataType;
 use halestar\FabLmsGoogleIntegrator\Controllers\GoogleIntegratorController;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleAiService;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleAuthService;
+use halestar\FabLmsGoogleIntegrator\Services\GoogleClassroomService;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleDocumentsService;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleWorkStorageService;
 use Illuminate\Support\Facades\Route;
-use Prism\Prism\Schema\ArraySchema;
-use Prism\Prism\Schema\BooleanSchema;
-use Prism\Prism\Schema\NumberSchema;
-use Prism\Prism\Schema\ObjectSchema;
-use Prism\Prism\Schema\StringSchema;
 
 class GoogleIntegrator extends LmsIntegrator
 {
@@ -102,6 +93,7 @@ class GoogleIntegrator extends LmsIntegrator
 		$manager->registerService($this, GoogleDocumentsService::class, $overwrite);
 		$manager->registerService($this, GoogleWorkStorageService::class, $overwrite);
 		$manager->registerService($this, GoogleAiService::class, $overwrite);
+		$manager->registerService($this, GoogleClassroomService::class, $overwrite);
 	}
 	
 	/**
@@ -120,7 +112,8 @@ class GoogleIntegrator extends LmsIntegrator
 		return ($type == IntegratorServiceTypes::AUTHENTICATION ||
 			$type == IntegratorServiceTypes::WORK ||
 			$type == IntegratorServiceTypes::DOCUMENTS ||
-			$type == IntegratorServiceTypes::AI);
+			$type == IntegratorServiceTypes::AI ||
+			$type == IntegratorServiceTypes::CLASSES);
 	}
 	
 	/**
@@ -144,22 +137,29 @@ class GoogleIntegrator extends LmsIntegrator
 	 */
 	public function publishRoutes(): void
 	{
-		Route::get('/', [GoogleIntegratorController::class, 'integrator'])
-		     ->name('integrator');
-		Route::patch('/', [GoogleIntegratorController::class, 'update'])
-		     ->name('integrator.update');
-		Route::get('services/auth', [GoogleIntegratorController::class, 'auth'])
-		     ->name('services.auth');
-		Route::patch('services/auth', [GoogleIntegratorController::class, 'authUpdate'])
-		     ->name('services.auth.update');
-		Route::get('services/work', [GoogleIntegratorController::class, 'work'])
-		     ->name('services.work');
-		Route::patch('services/work', [GoogleIntegratorController::class, 'workUpdate'])
-		     ->name('services.work.update');
-		Route::get('services/register/ai', [GoogleIntegratorController::class, 'registerAi'])
-		     ->name('services.ai.register');
-		Route::patch('services/register/ai', [GoogleIntegratorController::class, 'updateAiRegistration'])
-		     ->name('services.ai.register.update');
+		Route::controller(GoogleIntegratorController::class)
+			->group(function ()
+			{
+				Route::get('/', 'integrator')
+					->name('integrator');
+				Route::patch('/', 'update')
+					->name('integrator.update');
+				Route::get('services/auth', 'auth')
+					->name('services.auth');
+				Route::patch('services/auth', 'authUpdate')
+					->name('services.auth.update');
+				Route::get('services/work', 'work')
+					->name('services.work');
+				Route::patch('services/work', 'workUpdate')
+					->name('services.work.update');
+				Route::get('services/register/ai', 'registerAi')
+					->name('services.ai.register');
+				Route::patch('services/register/ai', 'updateAiRegistration')
+					->name('services.ai.register.update');
+				Route::get('services/classroom/preferences/{schoolClass}', 'classPreferences')
+					->name('services.classroom.preferences')
+					->withoutMiddleware(['can:settings.integrators']);
+			});
 	}
 	
 	public function isIntegrated(Person $person): bool

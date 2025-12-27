@@ -2,7 +2,9 @@
 
 namespace halestar\FabLmsGoogleIntegrator;
 
+use halestar\FabLmsGoogleIntegrator\Livewire\ClassPreferences;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class GoogleIntegratorServiceProvider extends ServiceProvider
 {
@@ -14,6 +16,7 @@ class GoogleIntegratorServiceProvider extends ServiceProvider
 		$this->publishes([
 			__DIR__ . '/public' => public_path('vendor/google-integrator'),
 		], 'public');
+		Livewire::component('google-integrator.class-preferences', ClassPreferences::class);
 	}
 	
 	public function register(): void

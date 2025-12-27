@@ -58,6 +58,13 @@ return
 		'services.ai.allow_user_own_ai.description' => 'This option allows a user to configure and use their own AI.',
 		'services.ai.registration.success' => 'The Google AI Integration has been registered.',
 		'services.ai.registration.error' => 'There was an error registering the Google AI Integration.',
-	
-	
+		'services.classroom' => 'Google Classroom',
+		'services.classroom.description' => 'This service integrates FabLMS with Google Classroom.',
+		'services.classroom.google' => 'Assigned Google Classroom Class',
+		'services.classroom.google.assignments' => 'Google Classroom Class Assignments',
+		'services.classroom.google.select' => 'Select Google Classroom Class',
+		'services.classroom.syncing.options' => 'Classroom Syncing Options',
+		'services.classroom.syncing.course' => 'Sync Class Basic Information',
+		'services.classroom.syncing.students' => 'Sync Class Student Information',
+		'services.classroom.syncing.lds' => 'Sync Learning Demonstrations',
 	];

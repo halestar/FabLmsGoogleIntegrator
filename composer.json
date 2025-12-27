@@ -8,12 +8,19 @@
             "halestar\\FabLmsGoogleIntegrator\\": "src/"
         }
     },
+    "scripts": {
+      "pre-autoload-dump": "Google\\Task\\Composer::cleanup"
+    },
     "extra": {
       "laravel": {
         "providers": [
           "halestar\\FabLmsGoogleIntegrator\\GoogleIntegratorServiceProvider"
         ]
-      }
+      },
+      "google/apiclient-services": [
+        "Drive",
+        "Classroom"
+      ]
     },
     "authors": [
         {
@@ -26,6 +33,7 @@
     {
       "php": "^8.3",
       "prism-php/prism": "^0.98.0",
-      "prism-php/relay": "^1.3"
+      "prism-php/relay": "^1.3",
+      "google/apiclient": "^2.18"
     }
 }

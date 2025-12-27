@@ -4,6 +4,7 @@ namespace halestar\FabLmsGoogleIntegrator\Controllers;
 
 use App\Classes\Integrators\SecureVault;
 use App\Enums\IntegratorServiceTypes;
+use App\Models\SubjectMatter\SchoolClass;
 use halestar\FabLmsGoogleIntegrator\GoogleIntegrator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -152,5 +153,17 @@ class GoogleIntegratorController
 		return redirect()
 			->back()
 			->with('success-status', __('google-integrator::google.services.ai.registration.error'));
+	}
+
+	public function classPreferences(SchoolClass $schoolClass)
+	{
+		$breadcrumb =
+			[
+				$schoolClass->currentSession()->name_with_schedule =>
+					route('subjects.school.classes.show', $schoolClass->currentSession()),
+				__('system.menu.criteria') => "#",
+			];
+
+		return view('google-integrator::class-preferences', ['breadcrumb' => $breadcrumb, 'classSelected' => $schoolClass]);
 	}
 }

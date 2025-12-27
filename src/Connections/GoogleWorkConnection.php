@@ -71,7 +71,7 @@ class GoogleWorkConnection extends WorkFilesConnection
 		$workFile->mime = $gFile->getMimeType();
 		$workFile->size = $file->size;
 		$workFile->extension = $exportFile->extension;
-		$workFile->hidden = $hidden;
+		$workFile->invisible = $hidden;
 		$workFile->public = $fileable->shouldBePublic();
 		$workFile->save();
 		//finally, we link the file
@@ -107,6 +107,8 @@ class GoogleWorkConnection extends WorkFilesConnection
 	 */
 	public function deleteFile(WorkFile $file): void
 	{
+		if($file->hasThumbnail())
+			$this->drive->files->delete($file->thumb_path);
 		$this->drive->files->delete($file->path);
 	}
 	
@@ -174,5 +176,45 @@ class GoogleWorkConnection extends WorkFilesConnection
 	public function cleanup(): void
 	{
 		// TODO: Implement cleanup() method.
+	}
+
+	public function storeThumbnail(WorkFile $workFile, string $contents): string
+	{
+		$gFile = new DriveFile();
+		$parentFolder = $this->getInstance($workFile->fileable->getWorkStorageKey()->value);
+		$fname = pathinfo($workFile->name, PATHINFO_FILENAME) . ".thmb.jpg";
+		$gFile->setName($fname);
+		$gFile->setParents([$parentFolder]);
+
+		$gFile = $this->drive->files->create(
+			$gFile,
+			[
+				'data' => $contents,
+				'mimeType' => 'image/jpeg',
+				'uploadType' => 'multipart',
+			]);
+		return $gFile->getId();
+	}
+
+	public function downloadThumb(WorkFile $file): StreamedResponse
+	{
+		header('Content-Description: File Transfer');
+		header('Content-Type: image/png');
+		header('Content-Disposition: inline');
+		header('Expires: 0');
+		header('Cache-Control: must-revalidate');
+		header('Pragma: public');
+		$response = $this->drive->files->get($file->thumb_path, ['alt' => 'media']);
+		$stream = $response->getBody()
+			->getContents();
+		return new StreamedResponse(function() use ($stream)
+		{
+			echo $stream;
+		});
+	}
+
+	public function thumbContents(WorkFile $file): ?string
+	{
+		// TODO: Implement thumbContents() method.
 	}
 }
