@@ -49,7 +49,7 @@ class GoogleIntegrator extends LmsIntegrator
 	 */
 	public static function getVersion(): string
 	{
-		return "0.1";
+		return "0.2";
 	}
 	
 	/**
@@ -93,7 +93,7 @@ class GoogleIntegrator extends LmsIntegrator
 		$manager->registerService($this, GoogleDocumentsService::class, $overwrite);
 		$manager->registerService($this, GoogleWorkStorageService::class, $overwrite);
 		$manager->registerService($this, GoogleAiService::class, $overwrite);
-		$manager->registerService($this, GoogleClassroomService::class, $overwrite);
+		//$manager->registerService($this, GoogleClassroomService::class, $overwrite);
 	}
 	
 	/**
@@ -112,8 +112,8 @@ class GoogleIntegrator extends LmsIntegrator
 		return ($type == IntegratorServiceTypes::AUTHENTICATION ||
 			$type == IntegratorServiceTypes::WORK ||
 			$type == IntegratorServiceTypes::DOCUMENTS ||
-			$type == IntegratorServiceTypes::AI ||
-			$type == IntegratorServiceTypes::CLASSES);
+			$type == IntegratorServiceTypes::AI);
+			// $type == IntegratorServiceTypes::CLASSES);
 	}
 	
 	/**
@@ -144,7 +144,7 @@ class GoogleIntegrator extends LmsIntegrator
 					->name('integrator');
 				Route::patch('/', 'update')
 					->name('integrator.update');
-				Route::get('services/auth', 'auth')
+				Route::get('services/auth', 'googleAuth')
 					->name('services.auth');
 				Route::patch('services/auth', 'authUpdate')
 					->name('services.auth.update');
@@ -156,9 +156,9 @@ class GoogleIntegrator extends LmsIntegrator
 					->name('services.ai.register');
 				Route::patch('services/register/ai', 'updateAiRegistration')
 					->name('services.ai.register.update');
-				Route::get('services/classroom/preferences/{schoolClass}', 'classPreferences')
+				/*Route::get('services/classroom/preferences/{schoolClass}', 'classPreferences')
 					->name('services.classroom.preferences')
-					->withoutMiddleware(['can:settings.integrators']);
+					->withoutMiddleware(['can:settings.integrators']);*/
 			});
 	}
 	

@@ -16,7 +16,7 @@
                     value="{{ $service->data->service_account }}"
                     aria-describedby="service_account_help"
             />
-            <x-error-display key="service_account">{{ $errors->first('service_account') }}</x-error-display>
+            <x-utilities.error-display key="service_account">{{ $errors->first('service_account') }}</x-utilities.error-display>
             <div id="service_account_help"
                  class="form-text">{!! __('google-integrator::google.services.work.service_account.description') !!}</div>
         </div>

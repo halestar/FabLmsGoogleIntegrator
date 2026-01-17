@@ -166,4 +166,9 @@ class GoogleClassroomConnection extends ClassesConnection
 	{
 
 	}
+
+	public function setupClass(ClassSession $classSession): mixed
+	{
+		return null;
+	}
 }

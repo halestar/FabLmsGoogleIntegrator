@@ -10,6 +10,7 @@ use halestar\FabLmsGoogleIntegrator\Connections\GoogleAuthConnection;
 use halestar\FabLmsGoogleIntegrator\Connections\GoogleClassroomConnection;
 use halestar\FabLmsGoogleIntegrator\Enums\GoogleIntegrationServices;
 use halestar\FabLmsGoogleIntegrator\GoogleIntegrator;
+use Laravel\Socialite\Facades\Socialite;
 
 class GoogleClassroomService extends LmsIntegrationService
 {
@@ -132,7 +133,22 @@ class GoogleClassroomService extends LmsIntegrationService
 	 */
 	public function registrationUrl(): string
 	{
-		return '';
+		//get the auth connection
+		$user = auth()->user();
+		$service = GoogleIntegrator::getService(IntegratorServiceTypes::AUTHENTICATION);
+		$connection = $service->connect($user);
+		$scopes = $connection->data->scopes;
+		$scopes = array_merge($scopes, GoogleIntegrationServices::CLASSROOM->scopes());
+		return Socialite::driver('google')
+			->with(
+				[
+					'login_hint' => $user->system_email,
+					'prompt' => 'consent',
+					'access_type' => 'offline'
+				])
+			->scopes($scopes)
+			->redirect()
+			->getTargetUrl();
 	}
 
 	/**

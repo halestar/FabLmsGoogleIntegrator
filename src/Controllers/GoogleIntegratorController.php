@@ -47,7 +47,7 @@ class GoogleIntegratorController
 			->with('success-status', __('google-integrator::google.update.success'));
 	}
 	
-	public function auth()
+	public function googleAuth()
 	{
 		//load the service
 		$service = GoogleIntegrator::getService(IntegratorServiceTypes::AUTHENTICATION);
@@ -161,7 +161,7 @@ class GoogleIntegratorController
 			[
 				$schoolClass->currentSession()->name_with_schedule =>
 					route('subjects.school.classes.show', $schoolClass->currentSession()),
-				__('system.menu.criteria') => "#",
+				__('school.classes.preferences') => "#",
 			];
 
 		return view('google-integrator::class-preferences', ['breadcrumb' => $breadcrumb, 'classSelected' => $schoolClass]);
