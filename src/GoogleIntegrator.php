@@ -49,7 +49,7 @@ class GoogleIntegrator extends LmsIntegrator
 	 */
 	public static function getVersion(): string
 	{
-		return "0.2";
+		return "0.3";
 	}
 	
 	/**
@@ -140,22 +140,33 @@ class GoogleIntegrator extends LmsIntegrator
 		Route::controller(GoogleIntegratorController::class)
 			->group(function ()
 			{
+				//Main integrator settings
 				Route::get('/', 'integrator')
 					->name('integrator');
 				Route::patch('/', 'update')
 					->name('integrator.update');
+				//authentication settings
 				Route::get('services/auth', 'googleAuth')
 					->name('services.auth');
 				Route::patch('services/auth', 'authUpdate')
 					->name('services.auth.update');
+				//Work document storage settings
 				Route::get('services/work', 'work')
 					->name('services.work');
 				Route::patch('services/work', 'workUpdate')
 					->name('services.work.update');
+				//AI system settings.
+				Route::get('services/ai', 'ai')
+					->name('services.ai');
+				Route::put('services/ai', 'updateAi')
+					->name('services.ai.update');
+
 				Route::get('services/register/ai', 'registerAi')
 					->name('services.ai.register');
 				Route::patch('services/register/ai', 'updateAiRegistration')
 					->name('services.ai.register.update');
+
+
 				/*Route::get('services/classroom/preferences/{schoolClass}', 'classPreferences')
 					->name('services.classroom.preferences')
 					->withoutMiddleware(['can:settings.integrators']);*/
@@ -177,7 +188,7 @@ class GoogleIntegrator extends LmsIntegrator
 		$authService = $this->services()
 		                    ->ofType(IntegratorServiceTypes::AUTHENTICATION)
 		                    ->first();
-		$connection = $authService->connect($person);
+		$connection = $authService->getServiceConnection($person);
 		return $connection->redirect()
 		                  ->getTargetUrl();
 	}

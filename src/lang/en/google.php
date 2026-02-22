@@ -33,6 +33,7 @@ return
 		
 		'services.ai.system.gemini_api' => 'Gemini API key',
 		'services.ai.system.gemini_api.description' => 'This is the API key that you get from the Google Developer Console.',
+		'services.ai.system.gemini_api.hidden' => 'API Key hidden for protection',
 		'service' => 'Google Service Account Settings',
 		'service.description' => 'These settings will allow the system to integrate with Google services.',
 		'oauth.description' => 'These settings will allow users in the system to connect to the google service using OAuth2.0.',
@@ -50,6 +51,7 @@ return
 		'services.ai.allow_user_system_ai' => 'Allow users to use the system AI',
 		'services.ai.allow_user_system_ai.description' => 'This option allows all users to use the system AI.',
 		'ai.update.success' => 'The Google AI Settings have been updated.',
+		'ai.connect.success' => 'The Google AI Integration has been connected successfully.',
 		
 		'services.ai.allow_user_ai' => 'Allow users to use AI',
 		'services.ai.allow_user_ai.description' => 'This option allows all users to use the AI system where it is available. Without it, the user will need a special permission to use the system ai.',

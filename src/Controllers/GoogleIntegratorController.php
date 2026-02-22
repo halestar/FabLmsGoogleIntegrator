@@ -5,9 +5,11 @@ namespace halestar\FabLmsGoogleIntegrator\Controllers;
 use App\Classes\Integrators\SecureVault;
 use App\Enums\IntegratorServiceTypes;
 use App\Models\SubjectMatter\SchoolClass;
+use Closure;
 use halestar\FabLmsGoogleIntegrator\GoogleIntegrator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Validator;
 
 class GoogleIntegratorController
 {
@@ -38,10 +40,6 @@ class GoogleIntegratorController
 		//is there a file to upload
 		if($request->hasFile('service_account'))
 			$vault->storeFile($request->file('service_account'), 'google', 'service_account');
-        //in there gemini app info?
-        $gemini_api = $request->input('gemini_api', null);
-        if($gemini_api && $gemini_api != '')
-            $vault->store('google', 'gemini_api', $gemini_api);
 		return redirect()
 			->back()
 			->with('success-status', __('google-integrator::google.update.success'));
@@ -98,9 +96,7 @@ class GoogleIntegratorController
 	
 	public function workUpdate(Request $request)
 	{
-		$data = $request->validate([
-			'service_account' => 'required|email',
-		]);
+		$data = $request->validate(['service_account' => 'required|email',]);
 		$service = GoogleIntegrator::autoload()
 		                           ->services()
 		                           ->ofType(IntegratorServiceTypes::WORK)
@@ -116,6 +112,49 @@ class GoogleIntegratorController
 			->back()
 			->with('success-status', __('google-integrator::google.work.update.success'));
 		
+	}
+
+	public function ai()
+	{
+		//load the service
+		$service = GoogleIntegrator::autoload()
+			->services()
+			->ofType(IntegratorServiceTypes::AI)
+			->first();
+		$breadcrumb =
+			[
+				__('system.menu.integrators') => route('integrators.index'),
+				$service->integrator->name => route('integrators.google.integrator'),
+				$service->name => '#'
+			];
+		//attempt a system connection
+		$connection = $service->connectToSystem();
+		return view('google-integrator::ai',
+			['breadcrumb' => $breadcrumb, 'service' => $service, 'connection' => $connection]);
+	}
+
+	public function updateAi(Request $request)
+	{
+		$aiService = GoogleIntegrator::getService(IntegratorServiceTypes::AI);
+		$data = Validator::make($request->all(),
+			[
+				'gemini_api' => [
+					'required',
+					function (string $attribute, mixed $value, Closure $fail) use ($aiService)
+					{
+						if (!$aiService->testConnection($value))
+							$fail(__('integrators.local.ai.connect.error'));
+					},
+				],
+			])->validate();
+		$aiService->registerSystemServiceConnection(
+			[
+				'enabled' => true,
+				'data' => ['api_key' => Crypt::encryptString($data['gemini_api'])],
+			]);
+		return redirect()
+			->back()
+			->with('success-status', __('google-integrator::google.ai.connect.success'));
 	}
 	
 	public function registerAi(Request $request)

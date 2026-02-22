@@ -2,16 +2,20 @@
 
 namespace halestar\FabLmsGoogleIntegrator\Services;
 
+use App\Classes\Integrators\Local\LocalIntegrator;
 use App\Classes\Integrators\SecureVault;
 use App\Enums\IntegratorServiceTypes;
+use App\Models\Integrations\Integrator;
 use App\Models\Integrations\LmsIntegrationService;
 use App\Models\People\Person;
 use halestar\FabLmsGoogleIntegrator\Connections\GoogleAiConnection;
 use halestar\FabLmsGoogleIntegrator\Connections\GoogleSystemAiConnection;
+use halestar\FabLmsGoogleIntegrator\GoogleIntegrator;
+use Illuminate\Support\Facades\Http;
 
 class GoogleAiService extends LmsIntegrationService
 {
-	
+	public const GEMINI_BASE_URL = 	"https://generativelanguage.googleapis.com/v1beta";
 	public static function getServiceType(): IntegratorServiceTypes
 	{
 		return IntegratorServiceTypes::AI;
@@ -41,25 +45,22 @@ class GoogleAiService extends LmsIntegrationService
 	
 	public static function canConnectToSystem(): bool
 	{
-		return false;
+		return true;
 	}
 	
 	public static function getPath(): string
 	{
-		return 'system-ai';
+		return 'ai';
 	}
 	
 	public static function canBeConfigured(): bool
 	{
-		return false;
+		return true;
 	}
 	
 	public function canConnect(Person $person): bool
 	{
-		$vault = app()->make(SecureVault::class);
-		if($vault->hasKey('google', 'gemini_api'))
-			return true;
-		return ($this->getServiceConnection($person)?->data->key);
+		return false;
 	}
 	
 	public function getConnectionClass(): string
@@ -69,7 +70,7 @@ class GoogleAiService extends LmsIntegrationService
 	
 	public function getSystemConnectionClass(): string
 	{
-		return '';
+		return GoogleAiConnection::class;
 	}
 	
 	public function systemAutoconnect(): bool
@@ -79,12 +80,12 @@ class GoogleAiService extends LmsIntegrationService
 	
 	public function configurationUrl(): string
 	{
-		return '';
+		return route(Integrator::INTEGRATOR_ACTION_PREFIX . GoogleIntegrator::getPath() . '.services.ai');
 	}
 	
 	public function canSystemConnect(): bool
 	{
-		return false;
+		return $this->hasSystemConnection() != null;
 	}
 	
 	public function canRegister(): bool
@@ -99,7 +100,20 @@ class GoogleAiService extends LmsIntegrationService
 
     public function canEnable(): bool
     {
-        $vault = app(SecureVault::class);
-        return $vault->hasKey('google', 'gemini_api');
+	    return $this->canSystemConnect();
     }
+
+	public function testConnection($apiKey): bool
+	{
+		try
+		{
+			$url = self::GEMINI_BASE_URL . "/models";
+			$response = Http::get($url, ['key' => $apiKey]);
+			return $response->successful();
+		}
+		catch (\Exception $e)
+		{
+			return false;
+		}
+	}
 }
