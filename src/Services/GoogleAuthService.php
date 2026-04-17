@@ -7,138 +7,109 @@ use App\Enums\IntegratorServiceTypes;
 use App\Models\Integrations\LmsIntegrationService;
 use App\Models\People\Person;
 use halestar\FabLmsGoogleIntegrator\Connections\GoogleAuthConnection;
+use halestar\FabLmsGoogleIntegrator\Enums\GoogleIntegrationServices;
+use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthService extends LmsIntegrationService
 {
-	
-	/**
-	 * @inheritDoc
-	 */
+
 	public static function getServiceType(): IntegratorServiceTypes
 	{
 		return IntegratorServiceTypes::AUTHENTICATION;
 	}
-	
-	/**
-	 * @inheritDoc
-	 */
+
 	public static function getServiceName(): string
 	{
 		return __('google-integrator::google.services.auth');
 	}
-	
-	/**
-	 * @inheritDoc
-	 */
+
 	public static function getServiceDescription(): string
 	{
 		return __('google-integrator::google.services.auth.description');
 	}
-	
-	/**
-	 * @inheritDoc
-	 */
+
 	public static function getDefaultData(): array
 	{
 		return
 			[
 				'use_avatar' => false,
-				'autoconnect' => [IntegratorServiceTypes::DOCUMENTS],
+				'allow_user_connection' => true,
+				'services' =>
+					[
+						IntegratorServiceTypes::DOCUMENTS,
+					],
 			];
 	}
 	
-	/**
-	 * @inheritDoc
-	 */
 	public static function canConnectToPeople(): bool
 	{
 		return true;
 	}
-	
-	/**
-	 * @inheritDoc
-	 */
+
 	public static function canConnectToSystem(): bool
 	{
 		return false;
 	}
-	
-	/**
-	 * @inheritDoc
-	 */
+
 	public static function getPath(): string
 	{
 		return "auth";
 	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public static function canBeConfigured(): bool
+
+	public function canEnable(): bool
 	{
 		return true;
 	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public function canConnect(Person $person): bool
-	{
-		return $this->integrator->verifySettings();
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
+
 	public function getConnectionClass(): string
 	{
 		return GoogleAuthConnection::class;
 	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public function getSystemConnectionClass(): string
+
+	public function canConnect(Person $person = null): bool
 	{
-		return '';
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public function systemAutoconnect(): bool
-	{
-		return false;
-	}
-	
-	/**
-	 * @inheritDoc
-	 */
-	public function configurationUrl(): string
-	{
-		return route('integrators.google.services.auth');
-	}
-	
-	public function canSystemConnect(): bool
-	{
-		return false;
-	}
-	
-	public function canRegister(): bool
-	{
-		return false;
-	}
-	
-	public function registrationUrl(): string
-	{
-		return '';
+		return ($person && $this->hasConnection($person));
 	}
 
-    public function canEnable(): bool
-    {
-        $vault = app(SecureVault::class);
-        return $vault->hasKey('google', 'client_id') &&
-            $vault->hasKey('google', 'client_secret') &&
-            $vault->hasKey('google', 'redirect');
-    }
+	public function canRegister(?Person $person = null): bool
+	{
+		if(!$person) return false;
+		return $this->data->allow_user_connection;
+	}
+
+	public function canConfigure(?Person $person = null): bool
+	{
+		return ($person == null);
+	}
+
+	public function registrationUrl(?Person $person = null): ?string
+	{
+		if(!$person)
+			return null;
+		//first, does the user have a valid token?
+		$scopes = [];
+		foreach($this->data->services as $service)
+			$scopes = array_merge($scopes, GoogleIntegrationServices::from($service)->scopes());
+		session()->put('google_auth_registering', true);
+		return Socialite::driver('google')
+			->with(
+				[
+					'login_hint' => $person->system_email,
+					'prompt' => 'consent',
+					'access_type' => 'offline',
+				])
+			->scopes($scopes)
+			->redirect()
+			->getTargetUrl();
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public function configurationUrl(?Person $person = null): ?string
+	{
+		if(!$person)
+			return route('integrators.google.services.auth');
+		return null;
+	}
 }

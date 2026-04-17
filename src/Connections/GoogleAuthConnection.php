@@ -55,6 +55,7 @@ class GoogleAuthConnection extends AuthConnection
 		//load the user that just logged in from socialite
 		$gUser = Socialite::driver('google')
 		                  ->user();
+		$registering = session()->get('google_auth_registering', false);
 		//find the user in the database based on the email.
 		$user = Person::where('email', $gUser->email)->first();
 		//if there's no user, we go back to the login place
@@ -62,10 +63,16 @@ class GoogleAuthConnection extends AuthConnection
 			return redirect()->route('login');
 
 		//are we authenticating to log in? or to establish an integration to this integrator (registering)?
-		if($user->authConnection instanceof GoogleAuthConnection)
-			$connection = $user->authConnection; //logging in
+		if($registering)
+		{
+			//register the connection
+			$service = GoogleIntegrator::getService(IntegratorServiceTypes::AUTHENTICATION);
+			$connection = $service->registerConnection($user);
+		}
+		elseif($user->authConnection instanceof GoogleAuthConnection)
+			$connection = $user->authConnection;
 		else
-			$connection = GoogleIntegrator::getService(IntegratorServiceTypes::AUTHENTICATION)->connect($user); //registering
+			$connection = GoogleIntegrator::getService(IntegratorServiceTypes::AUTHENTICATION)->connect($user);
 
 		//no matter what we're doing, if we have a connection, we need to update the data.
 		if($connection)
@@ -78,6 +85,7 @@ class GoogleAuthConnection extends AuthConnection
 				$connection->data->oauth_refresh_token = $gUser->refreshToken;
 				$connection->data->oauth_expires_in = now()->addSeconds($gUser->expiresIn)->timestamp;
 				$connection->data->scopes = $gUser->approvedScopes;
+
 			}
 			$connection->data->oauth_token = $gUser->token;
 			$connection->save();
@@ -90,17 +98,17 @@ class GoogleAuthConnection extends AuthConnection
 		}
 
 		//if we have the auth connection established, then we're logging in.
+		if($registering)
+		{
+			//connect to services
+			foreach($service->data->services as $service_type)
+				GoogleIntegrator::getService(GoogleIntegrationServices::from($service_type)->serviceType())->connect($user);
+			session()->remove('google_auth_registering');
+			return redirect()->route('people.show', ['person' => $user->school_id]);
+		}
 		if($user->authConnection instanceof GoogleAuthConnection)
-			return redirect($user->authConnection->completeLogin($user));
-
-		//if not, we're integrating, so connect the user to all the services that they should be connected to
-		$integrator = GoogleIntegrator::autoload();
-		foreach($connection->service->data->autoconnect as $service_type)
-			$integrator->services()
-			           ->ofType(IntegratorServiceTypes::from($service_type))
-			           ->first()
-			           ->connect($user);
-		return redirect()->route('people.show', ['person' => $user->school_id]);
+			return redirect(AuthConnection::completeLogin($user));
+		return redirect()->route('login');
 	}
 	
 	public function hasScope(GoogleIntegrationServices $service): bool
@@ -180,7 +188,7 @@ class GoogleAuthConnection extends AuthConnection
 	{
 		//first, does the user have a valid token?
 		$scopes = [];
-		foreach($this->service->data->autoconnect as $service)
+		foreach($this->service->data->services as $service)
 			$scopes = array_merge($scopes, GoogleIntegrationServices::from($service)
 			                                                        ->scopes());
 		$missing = false;

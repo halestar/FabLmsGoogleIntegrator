@@ -2,9 +2,11 @@
 
 namespace halestar\FabLmsGoogleIntegrator\Enums;
 
+use App\Enums\IntegratorServiceTypes;
 use App\Traits\EnumToArray;
 use Google\Service\Classroom;
 use Google\Service\Drive;
+use Google\Service\Gmail;
 
 enum GoogleIntegrationServices: string
 {
@@ -14,6 +16,7 @@ enum GoogleIntegrationServices: string
 	case DOCUMENTS = 'documents';
 	case WORK = 'work';
 	case CLASSROOM = 'classroom';
+	case EMAIL = 'email';
 	
 	static function userServices(): array
 	{
@@ -22,7 +25,7 @@ enum GoogleIntegrationServices: string
 	
 	static function systemServices(): array
 	{
-		return [self::WORK, self::CLASSROOM];
+		return [self::WORK, self::CLASSROOM, self::EMAIL];
 	}
 	
 	public function label(): string
@@ -33,6 +36,7 @@ enum GoogleIntegrationServices: string
 			self::DOCUMENTS => __('google-integrator::google.services.documents'),
 			self::WORK => __('google-integrator::google.services.work'),
 			self::CLASSROOM => __('google-integrator::google.services.classroom'),
+			self::EMAIL => __('google-integrator::google.services.email'),
 		};
 		
 	}
@@ -51,6 +55,19 @@ enum GoogleIntegrationServices: string
 				Classroom::CLASSROOM_PROFILE_PHOTOS,
 				Classroom::CLASSROOM_COURSES,
 			],
+			self::EMAIL => [Gmail::GMAIL_SEND],
+		};
+	}
+
+	public function serviceType(): IntegratorServiceTypes
+	{
+		return match ($this)
+		{
+			self::AUTHENTICATION => IntegratorServiceTypes::AUTHENTICATION,
+			self::DOCUMENTS => IntegratorServiceTypes::DOCUMENTS,
+			self::WORK => IntegratorServiceTypes::WORK,
+			self::CLASSROOM => IntegratorServiceTypes::CLASSES,
+			self::EMAIL => IntegratorServiceTypes::EMAIL,
 		};
 	}
 }

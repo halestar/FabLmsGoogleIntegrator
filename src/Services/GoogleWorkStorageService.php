@@ -50,60 +50,47 @@ class GoogleWorkStorageService extends LmsIntegrationService
 	{
 		return 'work';
 	}
-	
-	public static function canBeConfigured(): bool
+
+	public function canEnable(): bool
 	{
 		return true;
 	}
-	
-	public function canConnect(Person $person): bool
-	{
-		return false;
-	}
-	
+
 	public function getConnectionClass(): string
-	{
-		return '';
-	}
-	
-	public function getSystemConnectionClass(): string
 	{
 		return GoogleWorkConnection::class;
 	}
-	
-	public function systemAutoconnect(): bool
+
+	public function canConnect(?Person $person = null): bool
 	{
-		return false;
-	}
-	
-	public function configurationUrl(): string
-	{
-		return route('integrators.google.services.work');
-	}
-	
-	public function canSystemConnect(): bool
-	{
+		if($person) return false;
 		$vault = app()->make(SecureVault::class);
 		//2 things must be true for the system to use this connection:
-		//1. The service account must be configured in the intetegrator settings and
+		//1. The service account must be configured in the integrator settings and
 		//2. The service_account field must be populated.
 		return $vault->hasFile('google', 'service_account') && filter_var($this->data->service_account,
 				FILTER_VALIDATE_EMAIL);
 	}
-	
-	public function canRegister(): bool
+
+	public function canRegister(?Person $person = null): bool
 	{
 		return false;
 	}
-	
-	public function registrationUrl(): string
+
+	public function canConfigure(?Person $person = null): bool
 	{
-		return '';
+		return !$person;
 	}
 
-    public function canEnable(): bool
-    {
-        $vault = app(SecureVault::class);
-        return $vault->hasFile('google', 'service_account');
-    }
+	public function registrationUrl(?Person $person = null): ?string
+	{
+		return null;
+	}
+
+	public function configurationUrl(?Person $person = null): ?string
+	{
+		if(!$person)
+			return route('integrators.google.services.work');
+		return null;
+	}
 }

@@ -3,32 +3,21 @@
 namespace halestar\FabLmsGoogleIntegrator\Connections;
 
 use App\Casts\Ai\ProviderOptions;
-use App\Classes\AI\AiSchema;
 use App\Classes\AI\ProviderOption;
 use App\Classes\Integrators\SecureVault;
-use App\Enums\AiSchemaType;
+use App\Enums\BasicDataInput;
 use App\Interfaces\AiPromptable;
 use App\Interfaces\Fileable;
 use App\Models\Ai\AiPrompt;
 use App\Models\Ai\Llm;
 use App\Models\Integrations\Connections\AiConnection;
 use halestar\FabLmsGoogleIntegrator\Services\GoogleAiService;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Prism\Prism\Enums\Provider;
 use Prism\Prism\Facades\Prism;
-use Prism\Prism\Schema\ArraySchema;
-use Prism\Prism\Schema\BooleanSchema;
-use Prism\Prism\Schema\NumberSchema;
-use Prism\Prism\Schema\ObjectSchema;
-use Prism\Prism\Schema\StringSchema;
-use Prism\Prism\Tool;
-use Prism\Prism\ValueObjects\Media\Audio;
-use Prism\Prism\ValueObjects\Media\Document;
-use Prism\Prism\ValueObjects\Media\Image;
-use Prism\Prism\ValueObjects\Media\Video;
+use Prism\Prism\ValueObjects\ProviderTool;
 use Prism\Relay\Facades\Relay;
 
 class GoogleAiConnection extends AiConnection
@@ -46,7 +35,7 @@ class GoogleAiConnection extends AiConnection
 	public function executePrompt(Llm $aiModel, AiPrompt $prompt, AiPromptable $target): void
 	{
 		$key = Crypt::decryptString($this->data->api_key);
-        $this->executeGooglePrompt($aiModel->model_id, $prompt, $target, $key);
+        $this->executeGooglePrompt($aiModel, $prompt, $target, $key);
 	}
 
 	public function getLlms(): array
@@ -78,7 +67,28 @@ class GoogleAiConnection extends AiConnection
 
 	public function defaultProviderOptions(): ProviderOptions
 	{
-		return new ProviderOptions;
+		$options = new ProviderOptions;
+		$grounding = ProviderOption::create(
+			[
+				'field' => 'grounding',
+				'title' => __('google-integrator::google.services.ai.grounding'),
+				'description' => __('google-integrator::google.services.ai.grounding.description'),
+				'type' => BasicDataInput::SWITCH,
+				'value' => true,
+				'choices' => [],
+			]);
+		$options->addOption($grounding);
+		$thinkingBudget = ProviderOption::create(
+			[
+				'field' => 'thinkingBudget',
+				'title' => __('google-integrator::google.services.ai.thinking_budget'),
+				'description' => __('google-integrator::google.services.ai.thinking_budget.description'),
+				'type' => BasicDataInput::NUMBER,
+				'value' => 300,
+				'choices' => [],
+			]);
+		$options->addOption($thinkingBudget);
+		return $options;
 	}
 
 	public function refreshLlms(bool $reset = false): void
@@ -119,16 +129,18 @@ class GoogleAiConnection extends AiConnection
 
 
 
-	protected function executeGooglePrompt(string $aiModel, AiPrompt $prompt, AiPromptable $target, string $key)
+	protected function executeGooglePrompt(Llm $aiModel, AiPrompt $prompt, AiPromptable $target, string $key)
 	{
 		$files = $this->extractFiles($prompt);
 		if($target instanceof Fileable)
 			$files += $this->extractFiles($target);
+		//provider options
+		$options = $aiModel->provider_options->getOptions();
 		if($prompt->structured)
 		{
 			$response = Prism::structured()
 				->using(
-					Provider::Gemini, $aiModel,
+					Provider::Gemini, $aiModel->model_id,
 					[
 						'api_key' => $key,
 						'url' => 'https://generativelanguage.googleapis.com/v1beta',
@@ -138,8 +150,13 @@ class GoogleAiConnection extends AiConnection
 				->withSchema($target->getSchema($prompt->property))
 				->withSystemPrompt($prompt->system_prompt)
 				->withPrompt($prompt->renderPrompt($target), $files)
-				->usingTemperature($prompt->temperature)
-				->asStructured();
+				->usingTemperature($prompt->temperature);
+			//options
+			if(isset($options['grounding']) && $options['grounding']->value)
+				$response->withProviderTools([new ProviderTool('google_search')]);
+			if(isset($options['thinkingBudget']) && $options['thinkingBudget']->value > 0)
+				$response->withProviderOptions(['thinkingBudget' => $options['thinkingBudget']->value]);
+			$response = $response->asStructured();
 			$prompt->last_results = $response->structured;
 		}
 		else
@@ -156,8 +173,13 @@ class GoogleAiConnection extends AiConnection
 				->withSystemPrompt($prompt->system_prompt)
 				->withPrompt($prompt->renderPrompt($target), $files)
 				->usingTemperature($prompt->temperature)
-				->withMaxSteps(20)
-				->asText();
+				->withMaxSteps(20);
+			//options
+			if($options['grounding']->value)
+				$response->withProviderTools([new ProviderTool('google_search')]);
+			if($options['thinkingBudget']->value > 0)
+				$response->withProviderOptions(['thinkingBudget' => $options['thinkingBudget']->value]);
+			$response = $response->asText();
 			$prompt->last_results = $response->text;
 		}
 		$prompt->save();
@@ -166,6 +188,8 @@ class GoogleAiConnection extends AiConnection
 
 	public function validProviderOption(Llm $llm, ProviderOption $option): bool
 	{
+		if($option->field == 'thinking_budget')
+			return $option->value >= 0;
 		return true;
 	}
 }
